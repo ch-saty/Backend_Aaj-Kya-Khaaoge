@@ -16,15 +16,19 @@ export const sendOtp = async (req, res) => {
     let user = await User.findOne({ phone });
 
     if (!user) {
-      user = await User.create({ phone, countryCode });
+      user = new User({
+        phone,
+        countryCode,
+        username: `user_${Date.now()}`,
+      });
+    }
+
+    if (!user.username) {
+      user.username = `user_${user._id.toString().slice(-6)}`;
     }
 
     const otp = generateOtp();
-
-    user.otp = {
-      code: otp,
-      expiry: otpExpiry(),
-    };
+    user.otp = { code: otp, expiry: otpExpiry() };
 
     await user.save();
 
@@ -72,6 +76,11 @@ export const verifyOtp = async (req, res) => {
 
     user.otp = undefined;
 
+    // FIX: ensure username always exists
+    if (!user.username) {
+      user.username = `user_${user._id.toString().slice(-6)}`;
+    }
+
     await user.save();
 
     return res.status(200).json({
@@ -95,6 +104,7 @@ export const verifyOtp = async (req, res) => {
     return res.status(500).json({ status: false, message: "Server error" });
   }
 };
+
 // ---------------------------------------
 // RESEND OTP
 // ---------------------------------------
@@ -119,11 +129,12 @@ export const resendOtp = async (req, res) => {
     }
 
     const otp = generateOtp();
+    user.otp = { code: otp, expiry: otpExpiry() };
 
-    user.otp = {
-      code: otp,
-      expiry: otpExpiry(),
-    };
+    // FIX: ensure username always exists
+    if (!user.username) {
+      user.username = `user_${user._id.toString().slice(-6)}`;
+    }
 
     await user.save();
 
