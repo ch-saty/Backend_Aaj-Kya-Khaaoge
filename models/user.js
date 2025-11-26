@@ -10,7 +10,7 @@ const UserSchema = new mongoose.Schema(
     authToken: { type: String },
 
     displayName: { type: String, default: null },
-    username: { type: String, unique: true, sparse: true },
+    username: { type: String,  default: null },
     avatarUrl: { type: String, default: null },
 
     bio: { type: String, default: "" },
@@ -74,3 +74,4 @@ UserSchema.index({ "location.geo": "2dsphere" });
 const User = mongoose.model("User", UserSchema);
 
 export default User;
+
